@@ -5,14 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Hello Kitty Greek Speaking Practice</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;700&display=swap');
     :root{
       --bg:#ffe6f0; --card:#fff0f6; --ink:#5c004d; --accent:#ff66a3; --accent-2:#ff99cc; --muted:#b34780;
     }
     *{box-sizing:border-box}
-    body{margin:0; font-family:'Comic Sans MS', cursive, sans-serif; background:linear-gradient(180deg, var(--bg), #fff 70%); color:var(--ink);}
-    header{background:var(--accent); padding:16px; text-align:center; color:white; position:sticky; top:0;}
-    header h1{margin:0; font-size:26px;}
-    nav{margin-top:8px;}
+    body{margin:0; font-family:'Nunito', ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial; background:linear-gradient(180deg, var(--bg), #fff 70%); color:var(--ink);}  
+    header{background:linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%); padding:16px; color:white; position:sticky; top:0; box-shadow:0 4px 10px rgba(0,0,0,.12)}
+    header h1{margin:0; font-size:28px; font-family:'Baloo 2', 'Nunito', cursive; letter-spacing:.3px}
+    nav{margin-top:10px; display:flex; flex-wrap:wrap; justify-content:center; gap:8px}
     nav button{margin:0 6px; padding:8px 14px; border:none; border-radius:20px; background:var(--accent-2); color:var(--ink); font-weight:bold; cursor:pointer;}
     nav button.active{background:white; border:2px solid var(--accent);}
     .wrap{padding:20px;}
@@ -27,11 +28,18 @@
     /* Always-visible Hello Kitty sticker */
     .hk-sticker{position:fixed; right:12px; top:12px; height:80px; z-index:9999; pointer-events:none; filter: drop-shadow(0 2px 4px rgba(0,0,0,.2));}
     @media (max-width:600px){ .hk-sticker{height:60px; right:8px; top:8px;} }
+    .brand{display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap}
+    .kitty-logo{height:44px; width:auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,.2))}
+    .hk-sticker{position:fixed; right:12px; top:12px; height:72px; z-index:1000; pointer-events:none; filter: drop-shadow(0 2px 4px rgba(0,0,0,.25))}
+    @media (max-width:600px){ .hk-sticker{height:54px; right:8px; top:8px;} }
   </style>
 </head>
 <body>
   <header>
-    <h1>🎀 Hello Kitty Greek — Speak & Games</h1>
+    <div class="brand">
+      <img class="kitty-logo" src="./assets/hello-kitty.png" alt="Hello Kitty" onerror="this.style.display='none'">
+      <h1>🎀 Hello Kitty Greek — Speak & Games</h1>
+    </div>
     <img src=\"https://static.wikia.nocookie.net/hellokitty/images/5/52/Sanrio_Characters_Hello_Kitty_Image026.png/revision/latest?cb=20250110105831\" alt=\"Hello Kitty\" style=\"max-height:80px; display:block; margin:10px auto;\">
     <nav>
       <button onclick="showPage('words')" class="active">Words</button>
@@ -71,7 +79,7 @@
     <!-- Timed Challenge Page -->
     <section id="timed" class="hidden">
       <h2>⏱️ Timed Challenge</h2>
-      <img src="https://static.wikia.nocookie.net/hellokitty/images/3/3f/Hello_Kitty.png" alt="Hello Kitty" style="max-width:120px; display:block; margin:10px auto;">
+      <img src="./assets/hello-kitty.png" alt="Hello Kitty" style="max-width:120px; display:block; margin:10px auto;" onerror="this.style.display='none'">
       <div id="timedArea"></div>
       <button class="game" onclick="startTimed()">Start 30s Round</button>
     </section>
@@ -282,7 +290,7 @@
   }
 
   </script>
-  <img class="hk-sticker" alt="Hello Kitty" src="https://static.wikia.nocookie.net/hellokitty/images/5/52/Sanrio_Characters_Hello_Kitty_Image026.png/revision/latest?cb=20250110105831" />
+  <img class="hk-sticker" alt="Hello Kitty" src="./assets/hello-kitty.png" onerror="this.remove()" />
 </body>
 </html>
 
