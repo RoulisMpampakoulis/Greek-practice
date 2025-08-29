@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hello Kitty Greek Speaking Practice</title>
+  <style>
+    :root{
+      --bg:#ffe6f0; --card:#fff0f6; --ink:#5c004d; --accent:#ff66a3; --accent-2:#ff99cc; --muted:#b34780;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:'Comic Sans MS', cursive, sans-serif; background:linear-gradient(180deg, var(--bg), #fff 70%); color:var(--ink);}
+    header{background:var(--accent); padding:16px; text-align:center; color:white; position:sticky; top:0;}
+    header h1{margin:0; font-size:26px;}
+    nav{margin-top:8px;}
+    nav button{margin:0 6px; padding:8px 14px; border:none; border-radius:20px; background:var(--accent-2); color:var(--ink); font-weight:bold; cursor:pointer;}
+    nav button.active{background:white; border:2px solid var(--accent);}
+    .wrap{padding:20px;}
+    .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px}
+    .card{background:var(--card); border-radius:16px; padding:14px; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,.1);}
+    .gr{font-size:20px; font-weight:bold;}
+    .tr{font-size:14px; color:var(--muted);}
+    .en{font-size:15px; margin-top:4px;}
+    .hidden{display:none}
+    button.game{background:var(--accent); color:white; border:none; border-radius:14px; padding:8px 12px; cursor:pointer; margin:4px;}
+    .score{font-weight:bold; color:var(--ink); margin-top:6px; display:block;}
+    /* Always-visible Hello Kitty sticker */
+    .hk-sticker{position:fixed; right:12px; top:12px; height:80px; z-index:9999; pointer-events:none; filter: drop-shadow(0 2px 4px rgba(0,0,0,.2));}
+    @media (max-width:600px){ .hk-sticker{height:60px; right:8px; top:8px;} }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎀 Hello Kitty Greek — Speak & Games</h1>
+    <img src=\"https://static.wikia.nocookie.net/hellokitty/images/5/52/Sanrio_Characters_Hello_Kitty_Image026.png/revision/latest?cb=20250110105831\" alt=\"Hello Kitty\" style=\"max-height:80px; display:block; margin:10px auto;\">
+    <nav>
+      <button onclick="showPage('words')" class="active">Words</button>
+      <button onclick="showPage('flashcards')">Flashcards</button>
+      <button onclick="showPage('quiz')">Quiz</button>
+      <button onclick="showPage('timed')">⏱️ Timed Challenge</button>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <!-- Words Page -->
+    <section id="words">
+      <h2>Word List</h2>
+      <label><input type="checkbox" id="toggleTr" checked> Show pronunciation (English letters)</label>
+      <div class="grid" id="wordGrid"></div>
+    </section>
+
+    <!-- Flashcards Page -->
+    <section id="flashcards" class="hidden">
+      <h2>Flashcards</h2>
+      <div id="flashArea"></div>
+      <button class="game" onclick="nextFlash()">Next ➡️</button>
+    </section>
+
+    <!-- Say It Page -->
+    <section id="say" class="hidden">
+      <h2>Say the Word 🎤</h2>
+      <div id="sayArea"></div>
+      <p><small>(This uses your microphone to practice speaking. Works best in Chrome/Edge.)</small></p>
+    </section>
+
+    <!-- Quiz Page -->
+    <section id="quiz" class="hidden">
+      <h2>Quiz</h2>
+      <div id="quizArea"></div>
+    </section>
+    <!-- Timed Challenge Page -->
+    <section id="timed" class="hidden">
+      <h2>⏱️ Timed Challenge</h2>
+      <img src="https://static.wikia.nocookie.net/hellokitty/images/3/3f/Hello_Kitty.png" alt="Hello Kitty" style="max-width:120px; display:block; margin:10px auto;">
+      <div id="timedArea"></div>
+      <button class="game" onclick="startTimed()">Start 30s Round</button>
+    </section>
+
+  </main>
+
+  <script>
+  const data = [
+    // Greetings
+    {gr:"Γειά", tr:"Yia", en:"Hi / Hello"},
+    {gr:"Καλημέρα", tr:"Kaliméra", en:"Good morning"},
+    {gr:"Καλησπέρα", tr:"Kalispéra", en:"Good evening"},
+    {gr:"Καληνύχτα", tr:"Kaliníkhta", en:"Good night"},
+    {gr:"Ευχαριστώ", tr:"Efharistó", en:"Thank you"},
+    {gr:"Σε παρακαλώ", tr:"Se parakaló", en:"Please"},
+    {gr:"Συγγνώμη", tr:"Signómi", en:"Sorry / Excuse me"},
+
+    // Commonly used
+    {gr:"Ναι", tr:"Ne", en:"Yes"},
+    {gr:"Όχι", tr:"Óhi", en:"No"},
+    {gr:"Τι κάνεις;", tr:"Ti kánis?", en:"How are you?"},
+    {gr:"Καλά", tr:"Kalá", en:"Good / Well"},
+    {gr:"Σπίτι", tr:"Spíti", en:"House / Home"},
+    {gr:"Νερό", tr:"Neró", en:"Water"},
+    {gr:"Φαγητό", tr:"Fagitó", en:"Food"},
+    {gr:"Καφές", tr:"Kafés", en:"Coffee"},
+
+    // Everyday Useful Phrases
+    {gr:"Τι κάνεις;", tr:"Ti kánis?", en:"How are you?"},
+    {gr:"Καλά, εσύ;", tr:"Kalá, esí?", en:"Good, you?"},
+    {gr:"Γειά σου!", tr:"Yia sou!", en:"Hi! (informal)"},
+    {gr:"Γειά σας!", tr:"Yia sas!", en:"Hi! (formal/plural)"},
+    {gr:"Καλημέρα!", tr:"Kaliméra!", en:"Good morning!"},
+    {gr:"Τι κάνετε;", tr:"Ti kánete?", en:"How are you? (formal)"},
+    {gr:"Απάντηση: Καλά, εσύ;", tr:"Apántisi: Kalá, esý?", en:"Response: Good, and you?"},
+    {gr:"Μια χαρά!", tr:"Mia hará!", en:"Great!"},
+    {gr:"Όχι πολύ καλά…", tr:"Óhi polý kalá…", en:"Not very well…"},
+    {gr:"Χάρηκα!", tr:"Hárika!", en:"Nice to meet you!"},
+    {gr:"Και εγώ!", tr:"Kai egó!", en:"Me too!"},
+    {gr:"Και εμένα", tr:"Kai emena", en:"Me too / I like that too"},
+
+    // Verbs
+    {gr:"είμαι", tr:"ímai", en:"I am"},
+    {gr:"έχω", tr:"ého", en:"I have"},
+    {gr:"κάνω", tr:"káno", en:"I do / I make"},
+    {gr:"θέλω", tr:"thélo", en:"I want"},
+    {gr:"πηγαίνω", tr:"pighéno", en:"I go"},
+    {gr:"έρχομαι", tr:"érhome", en:"I come"},
+    {gr:"τρώω", tr:"tróo", en:"I eat"},
+    {gr:"πίνω", tr:"píno", en:"I drink"},
+    {gr:"μιλάω", tr:"miláo", en:"I speak"},
+    {gr:"καταλαβαίνω", tr:"katalavéno", en:"I understand"},
+    {gr:"βλέπω", tr:"vlépo", en:"I see / I watch"},
+    {gr:"ξέρω", tr:"xéro", en:"I know"},
+    {gr:"μένω", tr:"méno", en:"I stay / I live"},
+
+    // Common phrases you say
+    {gr:"Πεινάω", tr:"Pináo", en:"I'm hungry"},
+    {gr:"Διψάω", tr:"Dipsáo", en:"I'm thirsty"},
+    {gr:"Κρυώνω", tr:"Kryóno", en:"I'm cold"},
+    {gr:"Ζεσταίνομαι", tr:"Zesténome", en:"I'm hot"},
+    {gr:"Νυστάζω", tr:"Nystázo", en:"I'm sleepy"},
+    {gr:"Χαίρομαι", tr:"Hérome", en:"I'm happy"},
+    {gr:"Λυπάμαι", tr:"Lipáme", en:"I'm sorry / I feel sorry"},
+    {gr:"Φοβάμαι", tr:"Fováme", en:"I'm afraid"},
+
+    // Actions in daily life
+    {gr:"Περπατάω", tr:"Perpatáo", en:"I walk"},
+    {gr:"Τρέχω", tr:"Trého", en:"I run"},
+    {gr:"Δουλεύω", tr:"Doulévo", en:"I work"},
+    {gr:"Διαβάζω", tr:"Diavázo", en:"I read / I study"},
+    {gr:"Γράφω", tr:"Gráfo", en:"I write"},
+    {gr:"Ακούω", tr:"Akoúo", en:"I listen"},
+    {gr:"Παίζω", tr:"Pézo", en:"I play"}
+  ];
+
+  // Populate words grid
+  const grid=document.getElementById('wordGrid');
+  data.forEach(w=>{
+    const card=document.createElement('div'); card.className='card';
+    card.innerHTML=`<div class="gr">${w.gr}</div><div class="tr">${w.tr}</div><div class="en">${w.en}</div>`;
+    grid.appendChild(card);
+  });
+
+  const trToggle=document.getElementById('toggleTr');
+  trToggle.addEventListener('change',()=>{
+    document.querySelectorAll('.tr').forEach(el=>{el.style.display=trToggle.checked?"":"none"});
+  });
+
+  // Flashcards
+  let flashIndex=0;
+  function renderFlash(){
+    const f=document.getElementById('flashArea');
+    const item=data[flashIndex];
+    f.innerHTML=`<div class='card'><div class='gr'>${item.gr}</div><div class='tr'>${item.tr}</div><div class='hidden en' id='flashAns'>${item.en}</div><button class='game' onclick=\"document.getElementById('flashAns').classList.toggle('hidden')\">Flip Meaning</button></div>`;
+  }
+  function nextFlash(){flashIndex=(flashIndex+1)%data.length; renderFlash();}
+  renderFlash();
+
+  // Say It game (speak practice)
+  function renderSay(){
+    const area=document.getElementById('sayArea');
+    area.innerHTML='';
+    data.forEach((w,i)=>{
+      const div=document.createElement('div'); div.className='card';
+      div.innerHTML=`<div class='gr'>${w.gr}</div><div class='tr'>${w.tr}</div><div class='en'>${w.en}</div>
+        <button class='game' onclick='startRec(${i},"el-GR")'>🎤 Say in Greek</button>
+        <button class='game' onclick='startRec(${i},"en-US")'>🎤 Say (phonetic)</button>
+        <span id='res${i}' class='score'></span>`;
+      area.appendChild(div);
+    });
+  }
+
+  function startRec(i,lang){
+    const recog = new(window.SpeechRecognition||window.webkitSpeechRecognition)();
+    recog.lang=lang;
+    recog.start();
+    recog.onresult=(e)=>{
+      const said=e.results[0][0].transcript;
+      const target = lang==='el-GR'?data[i].gr.toLowerCase():data[i].tr.toLowerCase();
+      const heard = said.toLowerCase();
+      const score = similarity(normalize(heard,lang), normalize(target,lang));
+      document.getElementById('res'+i).textContent = `You said: "${said}" → ${Math.round(score*100)}% match`;
+    };
+    recog.onerror=(e)=>{document.getElementById('res'+i).textContent='Error: '+e.error;};
+  }
+
+  function normalize(s,lang){
+    s=s.toLowerCase().trim();
+    if(lang==='el-GR'){
+      const map={'ά':'α','έ':'ε','ή':'η','ί':'ι','ϊ':'ι','ΐ':'ι','ό':'ο','ύ':'υ','ΰ':'υ','ϋ':'υ','ώ':'ω'};
+      s=s.replace(/[άέήίϊΐόύΰϋώ]/g,m=>map[m]||m);
+    }
+    return s.replace(/[^a-zα-ω\s]/g,'').replace(/\s+/g,' ');
+  }
+  function similarity(a,b){
+    const sa=a.replace(/\s+/g,'');
+    const sb=b.replace(/\s+/g,'');
+    const dist=levenshtein(sa,sb);
+    const max=Math.max(sa.length,sb.length)||1;
+    return 1-dist/max;
+  }
+  function levenshtein(a,b){
+    const m=a.length,n=b.length; const dp=Array.from({length:m+1},()=>Array(n+1).fill(0));
+    for(let i=0;i<=m;i++) dp[i][0]=i; for(let j=0;j<=n;j++) dp[0][j]=j;
+    for(let i=1;i<=m;i++){
+      for(let j=1;j<=n;j++){
+        const cost=a[i-1]===b[j-1]?0:1;
+        dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+cost);
+      }
+    }
+    return dp[m][n];
+  }
+
+  renderSay();
+
+  // Quiz
+  function startQuiz(){
+    const area=document.getElementById('quizArea');
+    let qIndex=0;
+    function renderQ(){
+      const item=data[qIndex];
+      const options=[item.en,...data.filter(x=>x.en!==item.en).sort(()=>Math.random()-0.5).slice(0,2).map(x=>x.en)].sort(()=>Math.random()-0.5);
+      area.innerHTML=`<div class='card'><div class='gr'>${item.gr}</div><div class='tr'>${item.tr}</div>${options.map(o=>`<button class='game' onclick=\"checkQ('${o}','${item.en}')\">${o}</button>`).join('')}</div>`;
+    }
+    window.checkQ=(ans,correct)=>{alert(ans===correct?"Correct!":"Wrong, it was "+correct); qIndex=(qIndex+1)%data.length; renderQ();};
+    renderQ();
+  }
+  startQuiz();
+
+  // Nav switching
+  function showPage(id){
+    document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+    document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+    // ===== Timed Challenge =====
+  function startTimed(){
+    const area=document.getElementById('timedArea');
+    let score=0, time=30;
+    area.innerHTML='<div class="score">Score: 0</div><div id="timedQ"></div><div id="timedOpts"></div><div id="timedTimer">Time: 30s</div>';
+    const q=document.getElementById('timedQ');
+    const opts=document.getElementById('timedOpts');
+    const timer=document.getElementById('timedTimer');
+
+    function ask(){
+      const item=data[Math.floor(Math.random()*data.length)];
+      const wrongs=data.filter(x=>x.en!==item.en);
+      const choices=[item,...wrongs.sort(()=>Math.random()-0.5).slice(0,2)];
+      choices.sort(()=>Math.random()-0.5);
+      q.innerHTML='<div class="gr">'+item.gr+'</div><div class="tr">'+item.tr+'</div>';
+      opts.innerHTML='';
+      choices.forEach(c=>{
+        const b=document.createElement('button'); b.className='game'; b.textContent=c.en;
+        b.onclick=()=>{ if(c.en===item.en){score++;} ask(); update(); };
+        opts.appendChild(b);
+      });
+    }
+    function update(){
+      area.querySelector('.score').textContent='Score: '+score;
+    }
+    ask();
+    const interval=setInterval(()=>{
+      time--; timer.textContent='Time: '+time+'s';
+      if(time<=0){ clearInterval(interval); q.innerHTML='<b>Time up!</b>'; opts.innerHTML='Final Score: '+score; }
+    },1000);
+  }
+
+  </script>
+  <img class="hk-sticker" alt="Hello Kitty" src="https://static.wikia.nocookie.net/hellokitty/images/5/52/Sanrio_Characters_Hello_Kitty_Image026.png/revision/latest?cb=20250110105831" />
+</body>
+</html>
+
