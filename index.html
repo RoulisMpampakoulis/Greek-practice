@@ -3,27 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Hello Kitty Greek Speaking Practice</title>
+  <title>Hello Kitty Greek Speaking Practice — Expanded</title>
   <style>
     :root{
       --bg:#ffe6f0; --card:#fff0f6; --ink:#5c004d; --accent:#ff66a3; --accent-2:#ff99cc; --muted:#b34780;
     }
     *{box-sizing:border-box}
-    body{margin:0; font-family:'Comic Sans MS', cursive, sans-serif; background:linear-gradient(180deg, var(--bg), #fff 70%); color:var(--ink);}
-    header{background:var(--accent); padding:16px; text-align:center; color:white; position:sticky; top:0;}
+    body{margin:0; font-family:'Comic Sans MS', cursive, sans-serif; background:linear-gradient(180deg, var(--bg), #fff 70%); color:var(--ink);} 
+    header{background:var(--accent); padding:16px; text-align:center; color:white; position:sticky; top:0; z-index:10}
     header h1{margin:0; font-size:26px;}
-    nav{margin-top:8px;}
-    nav button{margin:0 6px; padding:8px 14px; border:none; border-radius:20px; background:var(--accent-2); color:var(--ink); font-weight:bold; cursor:pointer;}
-    nav button.active{background:white; border:2px solid var(--accent);}
-    .wrap{padding:20px;}
+    nav.top{margin-top:8px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
+    nav.top button{margin:0; padding:8px 14px; border:none; border-radius:20px; background:var(--accent-2); color:var(--ink); font-weight:bold; cursor:pointer;}
+    nav.top button.active{background:white; border:2px solid var(--accent);} 
+    .wrap{padding:18px;}
+    .toolbar{display:flex; gap:10px; align-items:center; margin-bottom:12px; flex-wrap:wrap}
     .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px}
-    .card{background:var(--card); border-radius:16px; padding:14px; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,.1);}
+    .card{background:var(--card); border-radius:16px; padding:14px; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,.1);} 
     .gr{font-size:20px; font-weight:bold;}
-    .tr{font-size:14px; color:var(--muted);}
+    .tr{font-size:14px; color:var(--muted);} 
     .en{font-size:15px; margin-top:4px;}
     .hidden{display:none}
     button.game{background:var(--accent); color:white; border:none; border-radius:14px; padding:8px 12px; cursor:pointer; margin:4px;}
     .score{font-weight:bold; color:var(--ink); margin-top:6px; display:block;}
+    .pillbar{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0}
+    .pill{padding:6px 10px; border-radius:999px; border:1px solid var(--accent); background:white; cursor:pointer; font-weight:bold;}
+    .pill.active{background:var(--accent-2);} 
+    .small{font-size:12px; color:var(--muted)}
     /* Always-visible Hello Kitty sticker */
     .hk-sticker{position:fixed; right:12px; top:12px; height:80px; z-index:9999; pointer-events:none; filter: drop-shadow(0 2px 4px rgba(0,0,0,.2));}
     @media (max-width:600px){ .hk-sticker{height:60px; right:8px; top:8px;} }
@@ -31,13 +36,14 @@
 </head>
 <body>
   <header>
-    <h1>🎀 Hello Kitty Greek — Speak & Games</h1>
+    <h1>🎀 Hello Kitty Greek — Speak, Study & Games</h1>
     <img src="https://img.favpng.com/24/23/4/hello-kitty-drawing-kawaii-image-sanrio-png-favpng-rUq8ZN0fufcuXGg6Kf3wH9LeJ.jpg" alt="Hello Kitty" style="max-height:80px; display:block; margin:10px auto;">
-    <nav>
-      <button onclick="showPage('words')" class="active">Words</button>
-      <button onclick="showPage('flashcards')">Flashcards</button>
-      <button onclick="showPage('quiz')">Quiz</button>
-      <button onclick="showPage('timed')">⏱️ Timed Challenge</button>
+    <nav class="top">
+      <button onclick="showPage('words', event)" class="active">Words</button>
+      <button onclick="showPage('flashcards', event)">Flashcards</button>
+      <button onclick="showPage('quiz', event)">Quiz</button>
+      <button onclick="showPage('say', event)">Say It</button>
+      <button onclick="showPage('timed', event)">⏱️ Timed</button>
     </nav>
   </header>
 
@@ -45,13 +51,18 @@
     <!-- Words Page -->
     <section id="words">
       <h2>Word List</h2>
-      <label><input type="checkbox" id="toggleTr" checked> Show pronunciation (English letters)</label>
+      <div class="toolbar">
+        <label><input type="checkbox" id="toggleTr" checked> Show pronunciation (English letters)</label>
+        <span class="small" id="count"></span>
+      </div>
+      <div id="sectionPills" class="pillbar"></div>
       <div class="grid" id="wordGrid"></div>
     </section>
 
     <!-- Flashcards Page -->
     <section id="flashcards" class="hidden">
       <h2>Flashcards</h2>
+      <div class="small">Current study set: <span id="currSetName"></span> (<span id="currSetCount"></span> items)</div>
       <div id="flashArea"></div>
       <button class="game" onclick="nextFlash()">Next ➡️</button>
     </section>
@@ -59,6 +70,7 @@
     <!-- Say It Page -->
     <section id="say" class="hidden">
       <h2>Say the Word 🎤</h2>
+      <div class="small">Practice with your current study set.</div>
       <div id="sayArea"></div>
       <p><small>(This uses your microphone to practice speaking. Works best in Chrome/Edge.)</small></p>
     </section>
@@ -66,8 +78,10 @@
     <!-- Quiz Page -->
     <section id="quiz" class="hidden">
       <h2>Quiz</h2>
+      <div class="small">Answers still say “Good girl / Bad girl” like you asked. 😉</div>
       <div id="quizArea"></div>
     </section>
+
     <!-- Timed Challenge Page -->
     <section id="timed" class="hidden">
       <h2>⏱️ Timed Challenge</h2>
@@ -79,103 +93,347 @@
   </main>
 
   <script>
-  const data = [
-    // Greetings
-    {gr:"Γειά", tr:"Yia", en:"Hi / Hello"},
-    {gr:"Καλημέρα", tr:"Kaliméra", en:"Good morning"},
-    {gr:"Καλησπέρα", tr:"Kalispéra", en:"Good evening"},
-    {gr:"Καληνύχτα", tr:"Kaliníkhta", en:"Good night"},
-    {gr:"Ευχαριστώ", tr:"Efharistó", en:"Thank you"},
-    {gr:"Σε παρακαλώ", tr:"Se parakaló", en:"Please"},
-    {gr:"Συγγνώμη", tr:"Signómi", en:"Sorry / Excuse me"},
+  // ====== BIGGER, SECTIONED DATA SET ======
+  const sections = [
+    {name:"Greetings & Basics", items:[
+      {gr:"Γειά", tr:"Yia", en:"Hi / Hello"},
+      {gr:"Καλημέρα", tr:"Kaliméra", en:"Good morning"},
+      {gr:"Καλησπέρα", tr:"Kalispéra", en:"Good evening"},
+      {gr:"Καληνύχτα", tr:"Kaliníkhta", en:"Good night"},
+      {gr:"Τι κάνεις;", tr:"Ti kánis?", en:"How are you? (informal)"},
+      {gr:"Τι κάνετε;", tr:"Ti kánete?", en:"How are you? (formal)"},
+      {gr:"Καλά", tr:"Kalá", en:"Good / Well"},
+      {gr:"Μια χαρά!", tr:"Mia hará!", en:"Great!"},
+      {gr:"Εσύ;", tr:"Esí?", en:"And you?"},
+      {gr:"Ναι", tr:"Ne", en:"Yes"},
+      {gr:"Όχι", tr:"Óhi", en:"No"},
+      {gr:"Ευχαριστώ", tr:"Efharistó", en:"Thank you"},
+      {gr:"Παρακαλώ", tr:"Parakaló", en:"You're welcome / Please"},
+      {gr:"Συγγνώμη", tr:"Signómi", en:"Sorry / Excuse me"},
+      {gr:"Χάρηκα!", tr:"Hárika!", en:"Nice to meet you!"},
+      {gr:"Με λένε …", tr:"Me léne …", en:"My name is …"},
+      {gr:"Από πού είσαι;", tr:"Apó poú íse?", en:"Where are you from?"},
+      {gr:"Είμαι από …", tr:"Íme apó …", en:"I am from …"},
+      {gr:"Δεν καταλαβαίνω", tr:"Den katalavéno", en:"I don't understand"},
+      {gr:"Μιλάς αγγλικά;", tr:"Milás angliká?", en:"Do you speak English?"},
+      {gr:"Λίγο", tr:"Lígo", en:"A little"},
+    ]},
 
-    // Commonly used
-    {gr:"Ναι", tr:"Ne", en:"Yes"},
-    {gr:"Όχι", tr:"Óhi", en:"No"},
-    {gr:"Τι κάνεις;", tr:"Ti kánis?", en:"How are you?"},
-    {gr:"Καλά", tr:"Kalá", en:"Good / Well"},
-    {gr:"Σπίτι", tr:"Spíti", en:"House / Home"},
-    {gr:"Νερό", tr:"Neró", en:"Water"},
-    {gr:"Φαγητό", tr:"Fagitó", en:"Food"},
-    {gr:"Καφές", tr:"Kafés", en:"Coffee"},
+    {name:"Numbers 0–20", items:[
+      {gr:"μηδέν", tr:"midén", en:"zero"},
+      {gr:"ένα", tr:"éna", en:"one"},
+      {gr:"δύο", tr:"dýo", en:"two"},
+      {gr:"τρία", tr:"tría", en:"three"},
+      {gr:"τέσσερα", tr:"téssera", en:"four"},
+      {gr:"πέντε", tr:"pénde", en:"five"},
+      {gr:"έξι", tr:"éxi", en:"six"},
+      {gr:"επτά", tr:"eptá", en:"seven"},
+      {gr:"οκτώ", tr:"októ", en:"eight"},
+      {gr:"εννέα", tr:"enéa", en:"nine"},
+      {gr:"δέκα", tr:"déka", en:"ten"},
+      {gr:"έντεκα", tr:"éndeka", en:"eleven"},
+      {gr:"δώδεκα", tr:"dódeka", en:"twelve"},
+      {gr:"δεκατρία", tr:"dekatría", en:"thirteen"},
+      {gr:"δεκατέσσερα", tr:"dekatéssera", en:"fourteen"},
+      {gr:"δεκαπέντε", tr:"dekapénde", en:"fifteen"},
+      {gr:"δεκαέξι", tr:"dekaéxi", en:"sixteen"},
+      {gr:"δεκαεπτά", tr:"dekaeptá", en:"seventeen"},
+      {gr:"δεκαοκτώ", tr:"dekaoktó", en:"eighteen"},
+      {gr:"δεκαεννέα", tr:"dekaenéa", en:"nineteen"},
+      {gr:"είκοσι", tr:"íkosi", en:"twenty"},
+    ]},
 
-    // Everyday Useful Phrases
-    {gr:"Τι κάνεις;", tr:"Ti kánis?", en:"How are you?"},
-    {gr:"Καλά, εσύ;", tr:"Kalá, esí?", en:"Good, you?"},
-    {gr:"Γειά σου!", tr:"Yia sou!", en:"Hi! (informal)"},
-    {gr:"Γειά σας!", tr:"Yia sas!", en:"Hi! (formal/plural)"},
-    {gr:"Καλημέρα!", tr:"Kaliméra!", en:"Good morning!"},
-    {gr:"Τι κάνετε;", tr:"Ti kánete?", en:"How are you? (formal)"},
-    {gr:"Απάντηση: Καλά, εσύ;", tr:"Apántisi: Kalá, esý?", en:"Response: Good, and you?"},
-    {gr:"Μια χαρά!", tr:"Mia hará!", en:"Great!"},
-    {gr:"Όχι πολύ καλά…", tr:"Óhi polý kalá…", en:"Not very well…"},
-    {gr:"Χάρηκα!", tr:"Hárika!", en:"Nice to meet you!"},
-    {gr:"Και εγώ!", tr:"Ki-egó!", en:"Me too!"},
-    {gr:"Και εμένα", tr:"Kai emena", en:"Me too / I like that too"},
+    {name:"Days & Months", items:[
+      {gr:"Δευτέρα", tr:"Def­téra", en:"Monday"},
+      {gr:"Τρίτη", tr:"Tríti", en:"Tuesday"},
+      {gr:"Τετάρτη", tr:"Tetárti", en:"Wednesday"},
+      {gr:"Πέμπτη", tr:"Pémpti", en:"Thursday"},
+      {gr:"Παρασκευή", tr:"Paraskeví", en:"Friday"},
+      {gr:"Σάββατο", tr:"Sávvato", en:"Saturday"},
+      {gr:"Κυριακή", tr:"Kiriakí", en:"Sunday"},
+      {gr:"Ιανουάριος", tr:"Ianouários", en:"January"},
+      {gr:"Φεβρουάριος", tr:"Fevrouários", en:"February"},
+      {gr:"Μάρτιος", tr:"Mártios", en:"March"},
+      {gr:"Απρίλιος", tr:"Aprílios", en:"April"},
+      {gr:"Μάιος", tr:"Máios", en:"May"},
+      {gr:"Ιούνιος", tr:"Ioúnios", en:"June"},
+      {gr:"Ιούλιος", tr:"Ioúlios", en:"July"},
+      {gr:"Αύγουστος", tr:"Ávgoustos", en:"August"},
+      {gr:"Σεπτέμβριος", tr:"Septémvrios", en:"September"},
+      {gr:"Οκτώβριος", tr:"Októvrios", en:"October"},
+      {gr:"Νοέμβριος", tr:"Noémvrios", en:"November"},
+      {gr:"Δεκέμβριος", tr:"Dekémvrios", en:"December"},
+      {gr:"σήμερα", tr:"símera", en:"today"},
+      {gr:"αύριο", tr:"ávrio", en:"tomorrow"},
+      {gr:"χθες", tr:"hthés", en:"yesterday"},
+    ]},
 
-    // Verbs
-    {gr:"είμαι", tr:"ímai", en:"I am"},
-    {gr:"έχω", tr:"ého", en:"I have"},
-    {gr:"κάνω", tr:"káno", en:"I do / I make"},
-    {gr:"θέλω", tr:"thélo", en:"I want"},
-    {gr:"πηγαίνω", tr:"pighéno", en:"I go"},
-    {gr:"έρχομαι", tr:"érhome", en:"I come"},
-    {gr:"τρώω", tr:"tróo", en:"I eat"},
-    {gr:"πίνω", tr:"píno", en:"I drink"},
-    {gr:"μιλάω", tr:"miláo", en:"I speak"},
-    {gr:"καταλαβαίνω", tr:"katalavéno", en:"I understand"},
-    {gr:"βλέπω", tr:"vlépo", en:"I see / I watch"},
-    {gr:"ξέρω", tr:"xéro", en:"I know"},
-    {gr:"μένω", tr:"méno", en:"I stay / I live"},
+    {name:"Colors", items:[
+      {gr:"κόκκινο", tr:"kókino", en:"red"},
+      {gr:"μπλε", tr:"ble", en:"blue"},
+      {gr:"πράσινο", tr:"prásino", en:"green"},
+      {gr:"κίτρινο", tr:"kítrino", en:"yellow"},
+      {gr:"μαύρο", tr:"mávro", en:"black"},
+      {gr:"άσπρο", tr:"áspro", en:"white"},
+      {gr:"ροζ", tr:"roz", en:"pink"},
+      {gr:"μοβ", tr:"mov", en:"purple"},
+      {gr:"πορτοκαλί", tr:"portokalí", en:"orange"},
+      {gr:"καφέ", tr:"kafé", en:"brown"},
+      {gr:"γκρι", tr:"gkrí", en:"gray"},
+    ]},
 
-    // Common phrases you say
-    {gr:"Πεινάω", tr:"Pináo", en:"I'm hungry"},
-    {gr:"Διψάω", tr:"Dipsáo", en:"I'm thirsty"},
-    {gr:"Κρυώνω", tr:"Kryóno", en:"I'm cold"},
-    {gr:"Ζεσταίνομαι", tr:"Zesténome", en:"I'm hot"},
-    {gr:"Νυστάζω", tr:"Nystázo", en:"I'm sleepy"},
-    {gr:"Χαίρομαι", tr:"Hérome", en:"I'm happy"},
-    {gr:"Λυπάμαι", tr:"Lipáme", en:"I'm sorry / I feel sorry"},
-    {gr:"Φοβάμαι", tr:"Fováme", en:"I'm afraid"},
+    {name:"Family", items:[
+      {gr:"ο πατέρας", tr:"o patéras", en:"father"},
+      {gr:"η μητέρα", tr:"i mitéra", en:"mother"},
+      {gr:"ο γιος", tr:"o yiós", en:"son"},
+      {gr:"η κόρη", tr:"i kóri", en:"daughter"},
+      {gr:"ο αδελφός", tr:"o adelfós", en:"brother"},
+      {gr:"η αδελφή", tr:"i adelfí", en:"sister"},
+      {gr:"ο παππούς", tr:"o pappoús", en:"grandfather"},
+      {gr:"η γιαγιά", tr:"i giagiá", en:"grandmother"},
+      {gr:"ο άνδρας", tr:"o ándras", en:"husband / man"},
+      {gr:"η γυναίκα", tr:"i yinéka", en:"wife / woman"},
+      {gr:"ο φίλος", tr:"o fílos", en:"friend (male)"},
+      {gr:"η φίλη", tr:"i fíli", en:"friend (female)"},
+    ]},
 
-    // Actions in daily life
-    {gr:"Περπατάω", tr:"Perpatáo", en:"I walk"},
-    {gr:"Τρέχω", tr:"Trého", en:"I run"},
-    {gr:"Δουλεύω", tr:"Doulévo", en:"I work"},
-    {gr:"Διαβάζω", tr:"Diavázo", en:"I read / I study"},
-    {gr:"Γράφω", tr:"Gráfo", en:"I write"},
-    {gr:"Ακούω", tr:"Akoúo", en:"I listen"},
-    {gr:"Παίζω", tr:"Pézo", en:"I play"}
+    {name:"Food & Drink", items:[
+      {gr:"νερό", tr:"neró", en:"water"},
+      {gr:"καφές", tr:"kafés", en:"coffee"},
+      {gr:"τσάι", tr:"tsái", en:"tea"},
+      {gr:"χυμός", tr:"himós", en:"juice"},
+      {gr:"ψωμί", tr:"psomí", en:"bread"},
+      {gr:"τυρί", tr:"tyrí", en:"cheese"},
+      {gr:"κρέας", tr:"kréas", en:"meat"},
+      {gr:"κοτόπουλο", tr:"kotópoulo", en:"chicken"},
+      {gr:"ψάρι", tr:"psári", en:"fish"},
+      {gr:"σαλάτα", tr:"saláta", en:"salad"},
+      {gr:"φρούτα", tr:"frúta", en:"fruits"},
+      {gr:"λαχανικά", tr:"lahaniká", en:"vegetables"},
+      {gr:"πατάτες", tr:"patátes", en:"potatoes"},
+      {gr:"ρύζι", tr:"rízi", en:"rice"},
+      {gr:"ζάχαρη", tr:"záhari", en:"sugar"},
+      {gr:"αλάτι", tr:"aláti", en:"salt"},
+      {gr:"πιρούνι", tr:"piroúni", en:"fork"},
+      {gr:"μαχαίρι", tr:"mahaíri", en:"knife"},
+      {gr:"κουτάλι", tr:"koutáli", en:"spoon"},
+      {gr:"λογαριασμός", tr:"logariasmós", en:"bill / check"},
+    ]},
+
+    {name:"Directions & Transport", items:[
+      {gr:"πού είναι …;", tr:"poú íne …?", en:"where is …?"},
+      {gr:"δεξιά", tr:"dexiá", en:"right"},
+      {gr:"αριστερά", tr:"aristerá", en:"left"},
+      {gr:"ίσια", tr:"ísia", en:"straight"},
+      {gr:"κοντά", tr:"kontá", en:"near"},
+      {gr:"μακριά", tr:"makriá", en:"far"},
+      {gr:"λεωφορείο", tr:"leoforío", en:"bus"},
+      {gr:"τρένο", tr:"tréno", en:"train"},
+      {gr:"ταξί", tr:"taxí", en:"taxi"},
+      {gr:"αεροδρόμιο", tr:"aerodrómio", en:"airport"},
+      {gr:"σταθμός", tr:"stathmós", en:"station"},
+      {gr:"εισιτήριο", tr:"isitírio", en:"ticket"},
+      {gr:"στάση", tr:"stási", en:"stop"},
+      {gr:"χάρτης", tr:"hártis", en:"map"},
+    ]},
+
+    {name:"Time & Schedule", items:[
+      {gr:"ώρα", tr:"óra", en:"hour / time"},
+      {gr:"λεπτό", tr:"leptó", en:"minute"},
+      {gr:"πρωί", tr:"proí", en:"morning"},
+      {gr:"μεσημέρι", tr:"mesiméri", en:"noon / midday"},
+      {gr:"απόγευμα", tr:"apóyevma", en:"afternoon"},
+      {gr:"βράδυ", tr:"vrádi", en:"evening / night"},
+      {gr:"σήμερα", tr:"símera", en:"today"},
+      {gr:"αύριο", tr:"ávrio", en:"tomorrow"},
+      {gr:"χθες", tr:"hthés", en:"yesterday"},
+      {gr:"τώρα", tr:"tóra", en:"now"},
+      {gr:"μετά", tr:"metá", en:"later / after"},
+      {gr:"νωρίς", tr:"norís", en:"early"},
+      {gr:"αργά", tr:"argá", en:"late"},
+      {gr:"ραντεβού", tr:"rantevú", en:"appointment / date"},
+    ]},
+
+    {name:"Home & Objects", items:[
+      {gr:"σπίτι", tr:"spíti", en:"house / home"},
+      {gr:"δωμάτιο", tr:"domátio", en:"room"},
+      {gr:"κουζίνα", tr:"kouzína", en:"kitchen"},
+      {gr:"μπάνιο", tr:"bánio", en:"bathroom"},
+      {gr:"κρεβάτι", tr:"kreváti", en:"bed"},
+      {gr:"πόρτα", tr:"pórta", en:"door"},
+      {gr:"παράθυρο", tr:"paráthiro", en:"window"},
+      {gr:"καρέκλα", tr:"karékla", en:"chair"},
+      {gr:"τραπέζι", tr:"trapézi", en:"table"},
+      {gr:"τηλέφωνο", tr:"tiléfono", en:"telephone"},
+      {gr:"κλειδί", tr:"kleidí", en:"key"},
+    ]},
+
+    {name:"Body & Health", items:[
+      {gr:"κεφάλι", tr:"kefáli", en:"head"},
+      {gr:"μάτι", tr:"máti", en:"eye"},
+      {gr:"αυτί", tr:"aftí", en:"ear"},
+      {gr:"μύτη", tr:"míti", en:"nose"},
+      {gr:"στόμα", tr:"stóma", en:"mouth"},
+      {gr:"χέρι", tr:"héri", en:"hand / arm"},
+      {gr:"πόδι", tr:"pódi", en:"leg / foot"},
+      {gr:"πόνος", tr:"pónos", en:"pain"},
+      {gr:"άρρωστος", tr:"árostos", en:"sick (male)"},
+      {gr:"φαρμακείο", tr:"farmakío", en:"pharmacy"},
+      {gr:"γιατρός", tr:"giatrós", en:"doctor"},
+      {gr:"βοήθεια!", tr:"voíthia!", en:"help!"},
+    ]},
+
+    {name:"Weather", items:[
+      {gr:"καιρός", tr:"kerós", en:"weather"},
+      {gr:"ήλιος", tr:"ílios", en:"sun"},
+      {gr:"ζέστη", tr:"zésti", en:"heat / hot"},
+      {gr:"κρύο", tr:"krío", en:"cold"},
+      {gr:"αέρας", tr:"aéras", en:"wind"},
+      {gr:"βροχή", tr:"vrohí", en:"rain"},
+      {gr:"χιόνι", tr:"hióni", en:"snow"},
+      {gr:"σύννεφο", tr:"sínnefo", en:"cloud"},
+      {gr:"ωραίος καιρός", tr:"oréos kerós", en:"nice weather"},
+    ]},
+
+    {name:"Shopping & Money", items:[
+      {gr:"πόσο κάνει;", tr:"póso káni?", en:"how much is it?"},
+      {gr:"φθηνό", tr:"fthinó", en:"cheap"},
+      {gr:"ακριβό", tr:"akrivó", en:"expensive"},
+      {gr:"μετρητά", tr:"metritá", en:"cash"},
+      {gr:"κάρτα", tr:"kárta", en:"card"},
+      {gr:"έκπτωση", tr:"ékptosi", en:"discount"},
+      {gr:"απόδειξη", tr:"apódixi", en:"receipt"},
+      {gr:"αγοράζω", tr:"agorázo", en:"I buy"},
+      {gr:"πουλάω", tr:"pouláo", en:"I sell"},
+      {gr:"κατάστημα", tr:"katástima", en:"shop / store"},
+    ]},
+
+    {name:"Adjectives", items:[
+      {gr:"μεγάλος", tr:"megálos", en:"big"},
+      {gr:"μικρός", tr:"mikrós", en:"small"},
+      {gr:"ωραίος", tr:"oréos", en:"nice / beautiful"},
+      {gr:"άσχημος", tr:"áshimos", en:"ugly"},
+      {gr:"καινούριος", tr:"kenúrios", en:"new"},
+      {gr:"παλιός", tr:"paliós", en:"old (object)"},
+      {gr:"γρήγορος", tr:"grígoros", en:"fast"},
+      {gr:"αργός", tr:"argós", en:"slow"},
+      {gr:"εύκολος", tr:"éfkolos", en:"easy"},
+      {gr:"δύσκολος", tr:"dýskolos", en:"difficult"},
+      {gr:"όμορφος", tr:"ómorfos", en:"pretty / handsome"},
+      {gr:"κακός", tr:"kakós", en:"bad"},
+      {gr:"καλός", tr:"kalós", en:"good"},
+    ]},
+
+    {name:"Pronouns & Question Words", items:[
+      {gr:"εγώ", tr:"egó", en:"I"},
+      {gr:"εσύ", tr:"esý", en:"you (sing.)"},
+      {gr:"αυτός / αυτή / αυτό", tr:"aftós / aftí / aftó", en:"he / she / it"},
+      {gr:"εμείς", tr:"emís", en:"we"},
+      {gr:"εσείς", tr:"esís", en:"you (pl.)"},
+      {gr:"αυτοί / αυτές / αυτά", tr:"aftí / aftés / aftá", en:"they"},
+      {gr:"τι;", tr:"ti?", en:"what?"},
+      {gr:"ποιος;", tr:"piós?", en:"who?"},
+      {gr:"πού;", tr:"poú?", en:"where?"},
+      {gr:"πότε;", tr:"póte?", en:"when?"},
+      {gr:"γιατί;", tr:"giatí?", en:"why?"},
+      {gr:"πώς;", tr:"pós?", en:"how?"},
+      {gr:"πόσο;", tr:"póso?", en:"how much/many?"},
+    ]},
+
+    {name:"Basic Verbs", items:[
+      {gr:"είμαι", tr:"ímai", en:"I am"},
+      {gr:"έχω", tr:"ého", en:"I have"},
+      {gr:"κάνω", tr:"káno", en:"I do / make"},
+      {gr:"θέλω", tr:"thélo", en:"I want"},
+      {gr:"πηγαίνω", tr:"pighéno", en:"I go"},
+      {gr:"έρχομαι", tr:"érhome", en:"I come"},
+      {gr:"τρώω", tr:"tróo", en:"I eat"},
+      {gr:"πίνω", tr:"píno", en:"I drink"},
+      {gr:"μιλάω", tr:"miláo", en:"I speak"},
+      {gr:"καταλαβαίνω", tr:"katalavéno", en:"I understand"},
+      {gr:"βλέπω", tr:"vlépo", en:"I see / watch"},
+      {gr:"ξέρω", tr:"xéro", en:"I know"},
+      {gr:"μένω", tr:"méno", en:"I stay / live"},
+      {gr:"δουλεύω", tr:"doulévo", en:"I work"},
+      {gr:"διαβάζω", tr:"diavázo", en:"I read / study"},
+      {gr:"γράφω", tr:"gráfo", en:"I write"},
+      {gr:"ακούω", tr:"akoúo", en:"I listen"},
+      {gr:"παίζω", tr:"pézo", en:"I play"},
+    ]},
   ];
 
-  // Populate words grid
-  const grid=document.getElementById('wordGrid');
-  data.forEach(w=>{
-    const card=document.createElement('div'); card.className='card';
-    card.innerHTML=`<div class="gr">${w.gr}</div><div class="tr">${w.tr}</div><div class="en">${w.en}</div>`;
-    grid.appendChild(card);
-  });
+  // Flatten for convenience and tag with section
+  const data = sections.flatMap(s => s.items.map(it => ({...it, section:s.name})));
 
+  // ====== STATE ======
+  let currentSection = 'All';
+  let studySet = data.slice();
+
+  // ====== UI BUILDERS ======
+  const grid = document.getElementById('wordGrid');
+  const sectionPills = document.getElementById('sectionPills');
+  const countSpan = document.getElementById('count');
+
+  function buildSectionPills(){
+    sectionPills.innerHTML = '';
+    const all = document.createElement('button');
+    all.className = 'pill' + (currentSection==='All' ? ' active' : '');
+    all.textContent = `All (${data.length})`;
+    all.onclick = ()=> setSection('All');
+    sectionPills.appendChild(all);
+
+    sections.forEach(s=>{
+      const b=document.createElement('button');
+      b.className = 'pill' + (currentSection===s.name ? ' active' : '');
+      b.textContent = `${s.name} (${s.items.length})`;
+      b.onclick = ()=> setSection(s.name);
+      sectionPills.appendChild(b);
+    });
+  }
+
+  function setSection(name){
+    currentSection = name;
+    studySet = name==='All' ? data.slice() : data.filter(x=>x.section===name);
+    renderGrid();
+    renderFlash();
+    renderSay();
+    startQuiz();
+  }
+
+  function renderGrid(){
+    grid.innerHTML = '';
+    const list = studySet;
+    list.forEach(w=>{
+      const card=document.createElement('div'); card.className='card';
+      card.innerHTML=`<div class="gr">${w.gr}</div><div class="tr">${w.tr}</div><div class="en">${w.en}</div><div class="small">${w.section}</div>`;
+      grid.appendChild(card);
+    });
+    countSpan.textContent = `${list.length} items in “${currentSection}”`;
+  }
+
+  // Pronunciation toggle
   const trToggle=document.getElementById('toggleTr');
   trToggle.addEventListener('change',()=>{
     document.querySelectorAll('.tr').forEach(el=>{el.style.display=trToggle.checked?"":"none"});
   });
 
-  // Flashcards
-  let flashIndex=0;
+  // ===== Flashcards =====
+  let flashIndex = 0;
   function renderFlash(){
+    document.getElementById('currSetName').textContent = currentSection;
+    document.getElementById('currSetCount').textContent = studySet.length;
     const f=document.getElementById('flashArea');
-    const item=data[flashIndex];
+    if(studySet.length===0){ f.textContent='No items.'; return; }
+    const item=studySet[flashIndex % studySet.length];
     f.innerHTML=`<div class='card'><div class='gr'>${item.gr}</div><div class='tr'>${item.tr}</div><div class='hidden en' id='flashAns'>${item.en}</div><button class='game' onclick="document.getElementById('flashAns').classList.toggle('hidden')">Flip Meaning</button></div>`;
   }
-  function nextFlash(){flashIndex=(flashIndex+1)%data.length; renderFlash();}
-  renderFlash();
+  function nextFlash(){ flashIndex=(flashIndex+1)%Math.max(1,studySet.length); renderFlash(); }
 
-  // Say It game (speak practice)
+  // ===== Say It (speech practice) =====
   function renderSay(){
     const area=document.getElementById('sayArea');
     area.innerHTML='';
-    data.forEach((w,i)=>{
+    studySet.forEach((w,i)=>{
       const div=document.createElement('div'); div.className='card';
       div.innerHTML=`<div class='gr'>${w.gr}</div><div class='tr'>${w.tr}</div><div class='en'>${w.en}</div>
         <button class='game' onclick='startRec(${i},"el-GR")'>🎤 Say in Greek</button>
@@ -186,17 +444,21 @@
   }
 
   function startRec(i,lang){
-    const recog = new(window.SpeechRecognition||window.webkitSpeechRecognition)();
-    recog.lang=lang;
-    recog.start();
-    recog.onresult=(e)=>{
-      const said=e.results[0][0].transcript;
-      const target = lang==='el-GR'?data[i].gr.toLowerCase():data[i].tr.toLowerCase();
-      const heard = said.toLowerCase();
-      const score = similarity(normalize(heard,lang), normalize(target,lang));
-      document.getElementById('res'+i).textContent = `You said: "${said}" → ${Math.round(score*100)}% match`;
-    };
-    recog.onerror=(e)=>{document.getElementById('res'+i).textContent='Error: '+e.error;};
+    try{
+      const recog = new(window.SpeechRecognition||window.webkitSpeechRecognition)();
+      recog.lang=lang;
+      recog.start();
+      recog.onresult=(e)=>{
+        const said=e.results[0][0].transcript;
+        const target = lang==='el-GR'?studySet[i].gr.toLowerCase():studySet[i].tr.toLowerCase();
+        const heard = said.toLowerCase();
+        const score = similarity(normalize(heard,lang), normalize(target,lang));
+        document.getElementById('res'+i).textContent = `You said: "${said}" → ${Math.round(score*100)}% match`;
+      };
+      recog.onerror=(e)=>{document.getElementById('res'+i).textContent='Error: '+e.error;};
+    }catch(err){
+      alert('Speech recognition not supported in this browser.');
+    }
   }
 
   function normalize(s,lang){
@@ -208,11 +470,9 @@
     return s.replace(/[^a-zα-ω\s]/g,'').replace(/\s+/g,' ');
   }
   function similarity(a,b){
-    const sa=a.replace(/\s+/g,'');
-    const sb=b.replace(/\s+/g,'');
+    const sa=a.replace(/\s+/g,''), sb=b.replace(/\s+/g,'');
     const dist=levenshtein(sa,sb);
-    const max=Math.max(sa.length,sb.length)||1;
-    return 1-dist/max;
+    const max=Math.max(sa.length,sb.length)||1; return 1-dist/max;
   }
   function levenshtein(a,b){
     const m=a.length,n=b.length; const dp=Array.from({length:m+1},()=>Array(n+1).fill(0));
@@ -226,35 +486,25 @@
     return dp[m][n];
   }
 
-  renderSay();
-
-  // Quiz
+  // ===== Quiz =====
   function startQuiz(){
     const area=document.getElementById('quizArea');
+    if(studySet.length===0){ area.textContent='No items.'; return; }
     let qIndex=0;
     function renderQ(){
-      const item=data[qIndex];
-      const options=[item.en,...data.filter(x=>x.en!==item.en).sort(()=>Math.random()-0.5).slice(0,2).map(x=>x.en)].sort(()=>Math.random()-0.5);
+      const item=studySet[qIndex % studySet.length];
+      const wrongs=studySet.filter(x=>x.en!==item.en);
+      const options=[item.en,...wrongs.sort(()=>Math.random()-0.5).slice(0,2).map(x=>x.en)].sort(()=>Math.random()-0.5);
       area.innerHTML=`<div class='card'><div class='gr'>${item.gr}</div><div class='tr'>${item.tr}</div>${options.map(o=>`<button class='game' onclick=\"checkQ('${o.replace(/'/g,"\\'")}','${item.en.replace(/'/g,"\\'")}')\">${o}</button>`).join('')}</div>`;
     }
     window.checkQ=(ans,correct)=>{
-      // Changed messaging per user request
       alert(ans===correct ? "Good girl!" : "Bad girl, it was " + correct);
-      qIndex=(qIndex+1)%data.length;
-      renderQ();
+      qIndex=(qIndex+1)%studySet.length; renderQ();
     };
     renderQ();
   }
-  startQuiz();
 
-  // Nav switching
-  function showPage(id){
-    document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
-    document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
-    event.target.classList.add('active');
-  }
-    // ===== Timed Challenge =====
+  // ===== Timed Challenge =====
   function startTimed(){
     const area=document.getElementById('timedArea');
     let score=0, time=30;
@@ -264,8 +514,8 @@
     const timer=document.getElementById('timedTimer');
 
     function ask(){
-      const item=data[Math.floor(Math.random()*data.length)];
-      const wrongs=data.filter(x=>x.en!==item.en);
+      const item=studySet[Math.floor(Math.random()*studySet.length)];
+      const wrongs=studySet.filter(x=>x.en!==item.en);
       const choices=[item,...wrongs.sort(()=>Math.random()-0.5).slice(0,2)];
       choices.sort(()=>Math.random()-0.5);
       q.innerHTML='<div class="gr">'+item.gr+'</div><div class="tr">'+item.tr+'</div>';
@@ -276,9 +526,7 @@
         opts.appendChild(b);
       });
     }
-    function update(){
-      area.querySelector('.score').textContent='Score: '+score;
-    }
+    function update(){ area.querySelector('.score').textContent='Score: '+score; }
     ask();
     const interval=setInterval(()=>{
       time--; timer.textContent='Time: '+time+'s';
@@ -286,9 +534,22 @@
     },1000);
   }
 
+  // ===== Navigation between pages =====
+  function showPage(id, ev){
+    document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+    document.querySelectorAll('nav.top button').forEach(b=>b.classList.remove('active'));
+    if(ev && ev.target) ev.target.classList.add('active');
+  }
+
+  // ===== INIT =====
+  buildSectionPills();
+  renderGrid();
+  renderFlash();
+  renderSay();
+  startQuiz();
+
   </script>
   <img class="hk-sticker" alt="Hello Kitty" src="https://img.favpng.com/24/23/4/hello-kitty-drawing-kawaii-image-sanrio-png-favpng-rUq8ZN0fufcuXGg6Kf3wH9LeJ.jpg" />
 </body>
 </html>
-
-
