@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title> Alexa's Greek Practice — Expanded</title>
+  <title>Alexa's Greek Practice — No Mic</title>
   <style>
     :root{
       --bg:#ffe6f0; --card:#fff0f6; --ink:#5c004d; --accent:#ff66a3; --accent-2:#ff99cc; --muted:#b34780;
@@ -42,7 +42,6 @@
       <button onclick="showPage('words', event)" class="active">Words</button>
       <button onclick="showPage('flashcards', event)">Flashcards</button>
       <button onclick="showPage('quiz', event)">Quiz</button>
-      <button onclick="showPage('say', event)">Say It</button>
       <button onclick="showPage('timed', event)">⏱️ Timed</button>
     </nav>
   </header>
@@ -67,18 +66,10 @@
       <button class="game" onclick="nextFlash()">Next ➡️</button>
     </section>
 
-    <!-- Say It Page -->
-    <section id="say" class="hidden">
-      <h2>Say the Word 🎤</h2>
-      <div class="small">Practice with your current study set.</div>
-      <div id="sayArea"></div>
-      <p><small>(This uses your microphone to practice speaking. Works best in Chrome/Edge.)</small></p>
-    </section>
-
     <!-- Quiz Page -->
     <section id="quiz" class="hidden">
       <h2>Quiz</h2>
-      <div class="small">Answers still say “Good girl / Bad girl” like you asked. 😉</div>
+      <div class="small">Answers still say “Good girl / Bad girl”. 😉</div>
       <div id="quizArea"></div>
     </section>
 
@@ -89,11 +80,10 @@
       <div id="timedArea"></div>
       <button class="game" onclick="startTimed()">Start 30s Round</button>
     </section>
-
   </main>
 
   <script>
-  // ====== BIGGER, SECTIONED DATA SET ======
+  // ====== DATA ======
   const sections = [
     {name:"Greetings & Basics", items:[
       {gr:"Γειά", tr:"Yia", en:"Hi / Hello"},
@@ -144,7 +134,7 @@
     ]},
 
     {name:"Days & Months", items:[
-      {gr:"Δευτέρα", tr:"Def­téra", en:"Monday"},
+      {gr:"Δευτέρα", tr:"Deftéra", en:"Monday"},
       {gr:"Τρίτη", tr:"Tríti", en:"Tuesday"},
       {gr:"Τετάρτη", tr:"Tetárti", en:"Wednesday"},
       {gr:"Πέμπτη", tr:"Pémpti", en:"Thursday"},
@@ -362,14 +352,19 @@
     ]},
   ];
 
-  // Flatten for convenience and tag with section
   const data = sections.flatMap(s => s.items.map(it => ({...it, section:s.name})));
 
   // ====== STATE ======
   let currentSection = 'All';
   let studySet = data.slice();
 
-  // ====== UI BUILDERS ======
+  // ====== HELPERS ======
+  const shuffle = (arr)=> arr
+    .map(v=>[Math.random(), v])
+    .sort((a,b)=>a[0]-b[0])
+    .map(x=>x[1]);
+
+  // ====== UI BUILD ======
   const grid = document.getElementById('wordGrid');
   const sectionPills = document.getElementById('sectionPills');
   const countSpan = document.getElementById('count');
@@ -395,8 +390,7 @@
     currentSection = name;
     studySet = name==='All' ? data.slice() : data.filter(x=>x.section===name);
     renderGrid();
-    renderFlash();
-    renderSay();
+    renderFlash();   // re-seed flashcards with new random order
     startQuiz();
   }
 
@@ -417,73 +411,29 @@
     document.querySelectorAll('.tr').forEach(el=>{el.style.display=trToggle.checked?"":"none"});
   });
 
-  // ===== Flashcards =====
-  let flashIndex = 0;
+  // ===== Flashcards (random order) =====
+  let flashDeck = [];
   function renderFlash(){
     document.getElementById('currSetName').textContent = currentSection;
     document.getElementById('currSetCount').textContent = studySet.length;
+    flashDeck = shuffle(studySet.slice()); // new random deck each time you visit/set
+    showFlashTop();
+  }
+  function showFlashTop(){
     const f=document.getElementById('flashArea');
-    if(studySet.length===0){ f.textContent='No items.'; return; }
-    const item=studySet[flashIndex % studySet.length];
-    f.innerHTML=`<div class='card'><div class='gr'>${item.gr}</div><div class='tr'>${item.tr}</div><div class='hidden en' id='flashAns'>${item.en}</div><button class='game' onclick="document.getElementById('flashAns').classList.toggle('hidden')">Flip Meaning</button></div>`;
+    if(flashDeck.length===0){ f.textContent='All done! Restart by switching section or pressing Next.'; return; }
+    const item=flashDeck[0];
+    f.innerHTML=`<div class='card'>
+        <div class='gr'>${item.gr}</div>
+        <div class='tr'>${item.tr}</div>
+        <div class='hidden en' id='flashAns'>${item.en}</div>
+        <button class='game' onclick="document.getElementById('flashAns').classList.toggle('hidden')">Flip Meaning</button>
+      </div>`;
   }
-  function nextFlash(){ flashIndex=(flashIndex+1)%Math.max(1,studySet.length); renderFlash(); }
-
-  // ===== Say It (speech practice) =====
-  function renderSay(){
-    const area=document.getElementById('sayArea');
-    area.innerHTML='';
-    studySet.forEach((w,i)=>{
-      const div=document.createElement('div'); div.className='card';
-      div.innerHTML=`<div class='gr'>${w.gr}</div><div class='tr'>${w.tr}</div><div class='en'>${w.en}</div>
-        <button class='game' onclick='startRec(${i},"el-GR")'>🎤 Say in Greek</button>
-        <button class='game' onclick='startRec(${i},"en-US")'>🎤 Say (phonetic)</button>
-        <span id='res${i}' class='score'></span>`;
-      area.appendChild(div);
-    });
-  }
-
-  function startRec(i,lang){
-    try{
-      const recog = new(window.SpeechRecognition||window.webkitSpeechRecognition)();
-      recog.lang=lang;
-      recog.start();
-      recog.onresult=(e)=>{
-        const said=e.results[0][0].transcript;
-        const target = lang==='el-GR'?studySet[i].gr.toLowerCase():studySet[i].tr.toLowerCase();
-        const heard = said.toLowerCase();
-        const score = similarity(normalize(heard,lang), normalize(target,lang));
-        document.getElementById('res'+i).textContent = `You said: "${said}" → ${Math.round(score*100)}% match`;
-      };
-      recog.onerror=(e)=>{document.getElementById('res'+i).textContent='Error: '+e.error;};
-    }catch(err){
-      alert('Speech recognition not supported in this browser.');
-    }
-  }
-
-  function normalize(s,lang){
-    s=s.toLowerCase().trim();
-    if(lang==='el-GR'){
-      const map={'ά':'α','έ':'ε','ή':'η','ί':'ι','ϊ':'ι','ΐ':'ι','ό':'ο','ύ':'υ','ΰ':'υ','ϋ':'υ','ώ':'ω'};
-      s=s.replace(/[άέήίϊΐόύΰϋώ]/g,m=>map[m]||m);
-    }
-    return s.replace(/[^a-zα-ω\s]/g,'').replace(/\s+/g,' ');
-  }
-  function similarity(a,b){
-    const sa=a.replace(/\s+/g,''), sb=b.replace(/\s+/g,'');
-    const dist=levenshtein(sa,sb);
-    const max=Math.max(sa.length,sb.length)||1; return 1-dist/max;
-  }
-  function levenshtein(a,b){
-    const m=a.length,n=b.length; const dp=Array.from({length:m+1},()=>Array(n+1).fill(0));
-    for(let i=0;i<=m;i++) dp[i][0]=i; for(let j=0;j<=n;j++) dp[0][j]=j;
-    for(let i=1;i<=m;i++){
-      for(let j=1;j<=n;j++){
-        const cost=a[i-1]===b[j-1]?0:1;
-        dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+cost);
-      }
-    }
-    return dp[m][n];
+  function nextFlash(){
+    if(flashDeck.length>0) flashDeck.shift(); // remove current
+    if(flashDeck.length===0) flashDeck = shuffle(studySet.slice()); // reshuffle when emptied
+    showFlashTop();
   }
 
   // ===== Quiz =====
@@ -495,7 +445,9 @@
       const item=studySet[qIndex % studySet.length];
       const wrongs=studySet.filter(x=>x.en!==item.en);
       const options=[item.en,...wrongs.sort(()=>Math.random()-0.5).slice(0,2).map(x=>x.en)].sort(()=>Math.random()-0.5);
-      area.innerHTML=`<div class='card'><div class='gr'>${item.gr}</div><div class='tr'>${item.tr}</div>${options.map(o=>`<button class='game' onclick=\"checkQ('${o.replace(/'/g,"\\'")}','${item.en.replace(/'/g,"\\'")}')\">${o}</button>`).join('')}</div>`;
+      area.innerHTML=`<div class='card'><div class='gr'>${item.gr}</div><div class='tr'>${item.tr}</div>${
+        options.map(o=>`<button class='game' onclick=\"checkQ('${o.replace(/'/g,"\\'")}','${item.en.replace(/'/g,"\\'")}')\">${o}</button>`).join('')}
+      </div>`;
     }
     window.checkQ=(ans,correct)=>{
       alert(ans===correct ? "Good girl!" : "Bad girl, it was " + correct);
@@ -546,12 +498,9 @@
   buildSectionPills();
   renderGrid();
   renderFlash();
-  renderSay();
   startQuiz();
-
   </script>
+
   <img class="hk-sticker" alt="Hello Kitty" src="https://img.favpng.com/24/23/4/hello-kitty-drawing-kawaii-image-sanrio-png-favpng-rUq8ZN0fufcuXGg6Kf3wH9LeJ.jpg" />
 </body>
 </html>
-
-
