@@ -3,35 +3,81 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Alexa's Greek Practice — No Mic</title>
+  <title>Alexa's Greek Practice</title>
+
+  <!-- Fonts: full Greek support -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600&family=Noto+Serif:wght@400;600&display=swap&subset=greek" rel="stylesheet">
+  <!-- Cute header font (Latin only) -->
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+
   <style>
     :root{
       --bg:#ffe6f0; --card:#fff0f6; --ink:#5c004d; --accent:#ff66a3; --accent-2:#ff99cc; --muted:#b34780;
     }
     *{box-sizing:border-box}
-    body{margin:0; font-family:'Comic Sans MS', cursive, sans-serif; background:linear-gradient(180deg, var(--bg), #fff 70%); color:var(--ink);} 
-    header{background:var(--accent); padding:16px; text-align:center; color:white; position:sticky; top:0; z-index:10}
-    header h1{margin:0; font-size:26px;}
+    body{
+      margin:0;
+      font-family:"Noto Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:linear-gradient(180deg, var(--bg), #fff 70%);
+      color:var(--ink);
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+      -webkit-text-size-adjust:100%;
+    }
+
+    header{
+      background:var(--accent);
+      padding:16px;
+      text-align:center;
+      color:white;
+      position:sticky; top:0; z-index:10;
+    }
+    header h1{
+      margin:0;
+      font-size:28px;
+      font-family:"Great Vibes","Noto Sans",system-ui,sans-serif;
+      letter-spacing:.4px;
+    }
+
     nav.top{margin-top:8px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
-    nav.top button{margin:0; padding:8px 14px; border:none; border-radius:20px; background:var(--accent-2); color:var(--ink); font-weight:bold; cursor:pointer;}
-    nav.top button.active{background:white; border:2px solid var(--accent);} 
+    nav.top button{
+      padding:8px 14px; border:none; border-radius:20px;
+      background:var(--accent-2); color:var(--ink); font-weight:700; cursor:pointer;
+    }
+    nav.top button.active{background:white; border:2px solid var(--accent);}
+
     .wrap{padding:18px;}
     .toolbar{display:flex; gap:10px; align-items:center; margin-bottom:12px; flex-wrap:wrap}
-    .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px}
-    .card{background:var(--card); border-radius:16px; padding:14px; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,.1);} 
-    .gr{font-size:20px; font-weight:bold;}
-    .tr{font-size:14px; color:var(--muted);} 
-    .en{font-size:15px; margin-top:4px;}
-    .hidden{display:none}
-    button.game{background:var(--accent); color:white; border:none; border-radius:14px; padding:8px 12px; cursor:pointer; margin:4px;}
-    .score{font-weight:bold; color:var(--ink); margin-top:6px; display:block;}
-    .pillbar{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0}
-    .pill{padding:6px 10px; border-radius:999px; border:1px solid var(--accent); background:white; cursor:pointer; font-weight:bold;}
-    .pill.active{background:var(--accent-2);} 
     .small{font-size:12px; color:var(--muted)}
+
+    .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px}
+    .card{
+      background:var(--card); border-radius:16px; padding:16px; text-align:center;
+      box-shadow:0 4px 10px rgba(0,0,0,.1);
+    }
+
+    .gr{font-family:"Noto Serif", Georgia, "Times New Roman", serif; font-size:22px; font-weight:600; line-height:1.35; letter-spacing:.2px;}
+    .tr{font-family:"Noto Sans", Arial, sans-serif; font-size:14px; color:var(--muted); line-height:1.35;}
+    .en{font-family:"Noto Sans", Arial, sans-serif; font-size:15px; margin-top:4px; line-height:1.35;}
+    .hidden{display:none}
+
+    .pillbar{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0}
+    .pill{padding:6px 10px; border-radius:999px; border:1px solid var(--accent); background:white; cursor:pointer; font-weight:700;}
+    .pill.active{background:var(--accent-2);}
+
+    button.game{background:var(--accent); color:white; border:none; border-radius:14px; padding:8px 12px; cursor:pointer; margin:4px; font-weight:700;}
+    .score{font-weight:bold; color:var(--ink); margin-top:6px; display:block;}
+
     /* Always-visible Hello Kitty sticker */
-    .hk-sticker{position:fixed; right:12px; top:12px; height:80px; z-index:9999; pointer-events:none; filter: drop-shadow(0 2px 4px rgba(0,0,0,.2));}
-    @media (max-width:600px){ .hk-sticker{height:60px; right:8px; top:8px;} }
+    .hk-sticker{position:fixed; right:12px; top:12px; height:80px; z-index:9999; pointer-events:none; filter:drop-shadow(0 2px 4px rgba(0,0,0,.2));}
+
+    @media (max-width:600px){
+      .gr{font-size:24px;}
+      header h1{font-size:24px; letter-spacing:.3px;}
+      .hk-sticker{height:60px; right:8px; top:8px;}
+    }
   </style>
 </head>
 <body>
@@ -83,7 +129,7 @@
   </main>
 
   <script>
-  // ====== DATA ======
+  // ====== DATA (same big set, sectioned) ======
   const sections = [
     {name:"Greetings & Basics", items:[
       {gr:"Γειά", tr:"Yia", en:"Hi / Hello"},
@@ -352,6 +398,7 @@
     ]},
   ];
 
+  // Flatten and tag
   const data = sections.flatMap(s => s.items.map(it => ({...it, section:s.name})));
 
   // ====== STATE ======
@@ -359,12 +406,9 @@
   let studySet = data.slice();
 
   // ====== HELPERS ======
-  const shuffle = (arr)=> arr
-    .map(v=>[Math.random(), v])
-    .sort((a,b)=>a[0]-b[0])
-    .map(x=>x[1]);
+  const shuffle = (arr)=> arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
 
-  // ====== UI BUILD ======
+  // ====== UI HOOKS ======
   const grid = document.getElementById('wordGrid');
   const sectionPills = document.getElementById('sectionPills');
   const countSpan = document.getElementById('count');
@@ -396,13 +440,12 @@
 
   function renderGrid(){
     grid.innerHTML = '';
-    const list = studySet;
-    list.forEach(w=>{
+    studySet.forEach(w=>{
       const card=document.createElement('div'); card.className='card';
       card.innerHTML=`<div class="gr">${w.gr}</div><div class="tr">${w.tr}</div><div class="en">${w.en}</div><div class="small">${w.section}</div>`;
       grid.appendChild(card);
     });
-    countSpan.textContent = `${list.length} items in “${currentSection}”`;
+    countSpan.textContent = `${studySet.length} items in “${currentSection}”`;
   }
 
   // Pronunciation toggle
@@ -414,14 +457,19 @@
   // ===== Flashcards (random order) =====
   let flashDeck = [];
   function renderFlash(){
-    document.getElementById('currSetName').textContent = currentSection;
-    document.getElementById('currSetCount').textContent = studySet.length;
+    document.getElementById('currSetName')?.remove();
+    document.getElementById('currSetCount')?.remove();
+    // set labels if present
+    const ns = document.querySelector('#flashcards .small');
+    if(ns){
+      ns.innerHTML = `Current study set: <span id="currSetName">${currentSection}</span> (<span id="currSetCount">${studySet.length}</span> items)`;
+    }
     flashDeck = shuffle(studySet.slice()); // new random deck each time you visit/set
     showFlashTop();
   }
   function showFlashTop(){
     const f=document.getElementById('flashArea');
-    if(flashDeck.length===0){ f.textContent='All done! Restart by switching section or pressing Next.'; return; }
+    if(flashDeck.length===0){ f.textContent='All done! Switch sections or press Next to reshuffle.'; return; }
     const item=flashDeck[0];
     f.innerHTML=`<div class='card'>
         <div class='gr'>${item.gr}</div>
